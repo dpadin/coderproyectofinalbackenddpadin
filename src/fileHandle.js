@@ -117,22 +117,20 @@ export const deleteAsyncProduct = async (pid) => {
         if (!fs.existsSync(prodArchName))              // no encontre un async para saber si el archivo existe
         {
             //archivo aun no existe, no hay productos que devolver
-            return "Archivo de productos aun no existe"
+            return []
         } else {
-            //archivo ya existe, entonces se agrega    
-            // primero carga el contenido en un objeto
-            const result = await fs.promises.readFile(prodArchName, "utf8")  //objeto con los productos
 
+            const result = await fs.promises.readFile(prodArchName, "utf8")  //objeto con los productos
             products = JSON.parse(result)        //se convierte el JSON a objeto    
   
             const index = products.findIndex(element => element.id === pid);
             if (index !== -1) {  // producto encontrado!
                 products.splice(index, 1);  //removemos el objeto del array
                 fs.promises.writeFile(prodArchName, JSON.stringify(products))  // se grava el array completo
-                 return "Producto " + pid + " Eliminado correctamente"
+                return pid
 
             } else {
-                return "No se ha encontrado el producto con pid: " + pid
+                return []
             }
 
         }

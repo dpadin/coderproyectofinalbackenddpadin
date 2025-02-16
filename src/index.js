@@ -5,13 +5,9 @@ import Cartsroute from "./routes/carts.route.js"
 import Productsroute from "./routes/products.route.js"
 import homeRoute from "./routes/home.router.js"
 import realTimeProducts from './routes/realtimeproducts.router.js'
-
-
+ 
 import { __dirname } from "./utils.js"
-import { v4 as uuidv4 } from 'uuid';
-import path from "path"
-import { Server } from 'socket.io';
-
+ import { Server } from 'socket.io';
 
 const app = express()
 
@@ -41,15 +37,10 @@ webSocketServer.on('connection', (socket) => {
     dibujaAllproducts(socket)
 
     socket.on('deleteProduct#', (data) => {
-        try {
-            const delP = deleteAsyncProduct(data.id)
-                .then(delP => {
-                    dibujaAllproducts(socket)
-                 })
-        }
-        catch {
-            console.log("Ha ocurrido un error Borrando el registro")
-        }
+        //se ha borrado un registro
+        dibujaAllproducts(socket)
+
+    
     })
 
     socket.on('addNew#', (data) => {
@@ -60,13 +51,15 @@ webSocketServer.on('connection', (socket) => {
         }
         catch { console.log("Ha ocurrido un error al agregar el producto") }
     })
+
     function dibujaAllproducts(socket) {
         const arrProductos = listAllAsyncProducts()
             .then(arrProductos => {
+                //socket.broadcast
                 webSocketServer.emit('realtime', arrProductos)   //  actualiza todos los cleintes
             })
             .catch(error => {
-                console.log('error')
+                console.log(error)
             });
     }
 })

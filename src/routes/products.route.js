@@ -110,7 +110,7 @@ route.delete("/:pid", (req, res) => {
             res.send(response)
         })
         .catch(error => {
-            req.send("Error: " + response)
+            req.send("Error: " + error)
         });
 })
 

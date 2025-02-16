@@ -1,12 +1,29 @@
 
+
 const socketClient = io()
 
 document.querySelector('#btnDelete').addEventListener('click', () => {
 
     const idProduct = document.querySelector("#pId").value
-    console.log (idProduct)
-    borrarProducto (idProduct)
+    if (idProduct =="" ) {
+       
+        Toastify({
+            text: "Ingrese producto!!!",
+            duration: 3000,
+            position: "right",
+            style: {
+                background: "linear-gradient(to right,rgb(176, 85, 0),rgb(201, 145, 61))",
+            },
+        }).showToast();
 
+    }else{
+        
+        const res= deleteProduct (idProduct)
+        document.querySelector("#pId").innerHTML=""
+ 
+
+    }
+    
 })
 
 
@@ -32,20 +49,21 @@ document.querySelector('#btnIngresar').addEventListener('click', () => {
         .catch(error => console.error('Error:', error));
 })
 //este codigo se agrega porque los botones feron agregados dinamicamente
-//
+
 
 document.addEventListener("click", (event) => {
     if (event.target.textContent == "Borrar")      //el boton borrar se ha presionado
     {
-        const idProduct = event.target.value
-        borrarProducto (idProduct)
-    }})
+        const pid = event.target.value
+        deleteProduct (pid)
+    }
+    
+})
 
 
 
 socketClient.on('realtime', (productos) => {            //escucha al server y rebibuja
-
-
+ 
     const contenedor = document.querySelector('#products-container')
     contenedor.innerHTML = "" //borra el ocntenedor, para evitar duplicados
 
@@ -71,7 +89,7 @@ socketClient.on('realtime', (productos) => {            //escucha al server y re
      `
         contenedor.appendChild(div)
 
-        console.log("hecho")
+      
     })
 
 })
@@ -85,17 +103,51 @@ function clearForm() {
 
 }
 
-function borrarProducto (pId)
+function deleteProduct (idProduct)
 {
-    
-    socketClient.emit('deleteProduct#', { action: 'deleteProduct#', id: pId }) //envia pedido al server
+     
+    fetch(`http://localhost:8080/api/products/${idProduct}`, {
+        method: 'DELETE',
+    })
+    .then(response => {
+        if (!response.ok) {
+            Toastify({
+                text: "No se pudo Borrar",
+                duration: 3000,
+                position: "rigght",
+                style: {
+                    background: "linear-gradient(to right,rgb(176, 120, 0),rgb(201, 157, 61))",
+                },
+            }).showToast();
+        }
+        return "KO"
+ 
+    })
+    .then(() => {
+        socketClient.emit('deleteProduct#', { action: 'deleteProduct#', id: idProduct });
+        
+        Toastify({
+            text: "Producto Borrado",
+            duration: 3000,
+            position: "right",
+            style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+            },
+        }).showToast();
+        
+        return "OK"
+    })
+    .catch(error => {
+        Toastify({
+            text: "No se pudo Borrar",
+            duration: 3000,
+            position: "rigght",
+            style: {
+                background: "linear-gradient(to right,rgb(176, 120, 0),rgb(201, 157, 61))",
+            },
+        }).showToast();
+        return "KO"
 
-    Toastify({
-        text: "Producto Borrado",
-        duration: 3000,
-        position: "left",
-        style: {
-            background: "linear-gradient(to right, #00b09b, #96c93d)",
-        },
-    }).showToast();
+    });
+
 }
