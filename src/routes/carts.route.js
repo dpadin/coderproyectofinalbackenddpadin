@@ -1,64 +1,64 @@
-import { getProductssyncCart,addProductssyncCart,newAsyncCart } from "../fileHandle.js"   //no se puede importar todo el archivo?
 import { Router }from "express"
-import {v4 as uuidv4} from 'uuid';
+import { cartModel } from "../models/carts.model.js"
+import {CartsDao}  from "../models/dao/carts.dao.js"
+
+import { ProductModel } from "../models/products.model.js";
+import {ProductsDao} from "../models/dao/products.dao.js"
 
 const route = Router ()
 
-//endpoint carts
-route.get ("/:cid", (req,res) => {
-    //recibe cid por params
-    const cid = req.params.cid
+const CartsService = new CartsDao(cartModel)
+const ProductService = new ProductsDao (ProductModel)
 
-    const response = getProductssyncCart (cid)          // guarda los datos en el archivo fisico
-    .then(response => {
-          res.json (  response) 
-         })
-         .catch(error => {
-            res.josn (  "ha ocurrido un error " + response) 
-         });
-
-  
+route.post('/', async (req, res) => {
     
+        const result = await CartsService.create({
+            
+        })
+         res.status(201).json({mensaje: 'Se ha creado el Carrito', payload: result})
+     })
+
+route.put("/:cid/product/:pid", async (req, res) => {
+        //    /:cid/product/:pid deberá agregar el producto al arreglo “products” del carrito seleccionado,
+        //  agregándose como un objeto bajo el siguiente formato:
+
+        const { cid, pid } = req.params
+        const {quantity} = req.query
+        if (quantity>0) {
+            const updatedProduct = await CartsService.addToCart(cid, pid,quantity)
+             res.status(200).json({ mensaje: 'Se agrego product al carrito', payload: updatedProduct })
+        }else
+        {
+            res.status(400).json({ mensaje: 'La cantidad no puede estar vacia ', payload: {}})
+        }
+        })
+
+route.get('/', async (req, res) => {
+const result = await CartsService.getAll()
+res.status(200).json({mensaje: 'get Carritos all', payload: result})
+})
+
+route.get("/:cid", async (req, res) => {       //usando params trae solo el product con el id en la ruta
+    const { cid } = req.params
+    const result = await CartsService.getByCart(cid)
+    res.status(200).json({mensaje: 'carritos x ID', payload: result})
+    })
+
+route.delete('/:cid/product/:pid', async (req, res) => {
+    const { cid,pid } = req.params
+ 
+    const result = await CartsService.delFromCart({ _id: cid },pid)
+    res.status(200).json({mensaje: 'se elimino producto del un carrito', payload: result})
+    })    
+
+route.delete('/:cid', async (req, res) => {
+    const { cid } = req.params
+    const result = await CartsService.deleteProducts({ _id: cid })
+
+    //if (result.deletedCount == 0) res.status(400).json({mensaje: 'No se encontro carrito ', payload: result})
+ 
+    res.status(200).json({mensaje: 'se eliminaron TODOS los productos del carrito', payload: result})
 })
  
-// endpoint POST de carts
-// recibe idNumber (string)y products (objeto)
 
-route.post ("/",(req,res)=>{
-     //genera un nuevo carrito sin productos
-    const cid = uuidv4()      
-    const response = newAsyncCart (cid)          // guarda los datos en el archivo fisico
-    .then(response => {
-        // console.log(response)
-         res.json (  response) 
-         })
-         .catch(error => {
-            res.josn (  response) 
-         });
-   
-})
-
-route.post("/:cid/product/:pid", (req, res) => {
-    //    /:cid/product/:pid deberá agregar el producto al arreglo “products” del carrito seleccionado,
-    //  agregándose como un objeto bajo el siguiente formato:
-
-    //product: SÓLO DEBE CONTENER EL ID DEL PRODUCTO (Es crucial que no agregues el producto completo)
-    //quantity: debe contener el número de ejemplares de dicho producto. El producto, de momento, se agregará de uno en uno.
-
-    const cid = req.params.cid           // cid es el cart a actualizar
-    const pid = req.params.pid           // pid es el id de producto a agregar
-
-    const response = addProductssyncCart(cid, pid)
-        .then(response => {
-            // console.log(response)
-            res.send(response)
-        })
-        .catch(error => {
-            res.send(response)
-        });
-
-
-
-    //  res.send ( "Nuevo carrito recibido")
-})
 export default route

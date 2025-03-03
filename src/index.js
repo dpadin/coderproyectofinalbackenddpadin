@@ -5,7 +5,8 @@ import Cartsroute from "./routes/carts.route.js"
 import Productsroute from "./routes/products.route.js"
 import homeRoute from "./routes/home.router.js"
 import realTimeProducts from './routes/realtimeproducts.router.js'
- 
+import { connectToMongo } from './connections/mongo.js' 
+
 import { __dirname } from "./utils.js"
  import { Server } from 'socket.io';
 
@@ -30,6 +31,7 @@ app.use ('/realtimeProducts', realTimeProducts)
 app.set("views", __dirname + "/views")
 app.use(express.static(__dirname + '/public'))
 
+connectToMongo()
 
 webSocketServer.on('connection', (socket) => {
     console.log('Nuevo dispositivo conectado!, se conecto ->', socket.id)
